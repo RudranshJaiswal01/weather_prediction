@@ -1,8 +1,25 @@
+"""
+Weather Data Fetcher Module
+
+This module provides functions to fetch weather data from the Open-Meteo API.
+It supports retrieving:
+- Historical weather data from 2000 onwards
+- Hourly weather forecasts
+- Current weather conditions
+
+The module uses the Open-Meteo free weather API and focuses on Delhi's coordinates
+(latitude: 28.6519, longitude: 77.2315).
+"""
+
 import requests
 import logging
 from datetime import datetime, timezone
 
-# Setup logging
+# Constants for Delhi coordinates
+LATITUDE = 28.6519
+LONGITUDE = 77.2315
+
+# Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -10,6 +27,22 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_historic_weather_data():
+    """
+    Fetch historical weather data from Open-Meteo Archive API starting from 2000.
+
+    The function retrieves various weather parameters including:
+    - Temperature at 2m above ground
+    - Relative humidity
+    - Precipitation and rain
+    - Weather code and cloud cover
+    - Surface pressure
+    - Wind speed and direction
+    - Day/night indicator
+
+    Returns:
+        dict: Historical weather data in JSON format containing hourly measurements.
+              Returns empty dict on error.
+    """
     try:
         start_time = datetime.strptime("2000-01-01", "%Y-%m-%d")
         now = datetime.now(timezone.utc)
@@ -19,8 +52,8 @@ def fetch_historic_weather_data():
         url = "https://archive-api.open-meteo.com/v1/archive"
 
         params = {
-            "latitude": 28.6519,
-            "longitude": 77.2315,
+            "latitude": LATITUDE,
+            "longitude": LONGITUDE,
             "start_date": start_time.strftime("%Y-%m-%d"),
             "end_date": now.strftime("%Y-%m-%d"),
             "hourly": [
@@ -50,13 +83,32 @@ def fetch_historic_weather_data():
 
 
 def fetch_hourly_weather_data():
+    """
+    Fetch hourly weather forecast data from Open-Meteo API for the next 24 hours.
+
+    The function retrieves various weather parameters including:
+    - Temperature at 2m above ground
+    - Relative humidity
+    - Precipitation and rain
+    - Weather code and cloud cover
+    - Surface pressure
+    - Wind speed and direction
+    - Day/night indicator
+
+    Returns:
+        dict: Dictionary containing:
+            - hourly_data: Hourly weather measurements
+            - daily_data: Daily aggregated data
+            - metadata: Location and timezone information
+              Returns empty dict on error.
+    """
     try:
         logger.info("Fetching hourly weather data from Open-Meteo API...")
 
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "latitude": 28.6519,
-            "longitude": 77.2315,
+            "latitude": LATITUDE,
+            "longitude": LONGITUDE,
             "hourly": [
                 "temperature_2m",
                 "relative_humidity_2m",
@@ -100,20 +152,38 @@ def fetch_hourly_weather_data():
 
 
 def fetch_current_weather_data():
+    """
+    Fetch current weather conditions from Open-Meteo API.
+
+    The function retrieves various current weather parameters including:
+    - Temperature at 2m above ground
+    - Relative humidity
+    - Precipitation and rain
+    - Weather code and cloud cover
+    - Surface pressure
+    - Wind speed and direction
+    - Day/night indicator
+
+    Returns:
+        dict: Dictionary containing:
+            - current_data: Current weather measurements
+            - current_data_units: Units for each measurement
+            - metadata: Location and timezone information
+              Returns empty dict on error.
+    """
     try:
         logger.info("Fetching current weather data from Open-Meteo API...")
 
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "latitude": 28.6519,
-            "longitude": 77.2315,
+            "latitude": LATITUDE,
+            "longitude": LONGITUDE,
             "current": [
                 "temperature_2m",
                 "relative_humidity_2m",
                 "is_day",
                 "precipitation",
                 "rain",
-                "showers",
                 "weather_code",
                 "cloud_cover",
                 "surface_pressure",
