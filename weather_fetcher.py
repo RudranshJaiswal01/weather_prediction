@@ -16,6 +16,8 @@ def fetch_historic_weather_data():
 
         logger.info("Fetching historic weather data from Open-Meteo API...")
 
+        url = "https://archive-api.open-meteo.com/v1/archive"
+
         params = {
             "latitude": 28.6519,
             "longitude": 77.2315,
@@ -36,9 +38,7 @@ def fetch_historic_weather_data():
             "timezone": "Asia/Kolkata",
         }
 
-        response = requests.get(
-            "https://archive-api.open-meteo.com/v1/archive", params=params
-        )
+        response = requests.get(url, params=params)
         response.raise_for_status()  # Raise an exception for bad status codes
         data = response.json()
 
@@ -49,15 +49,14 @@ def fetch_historic_weather_data():
         return {}
 
 
-def fetch_current_weather_data():
+def fetch_hourly_weather_data():
     try:
-        logger.info("Fetching current weather data from Open-Meteo API...")
+        logger.info("Fetching hourly weather data from Open-Meteo API...")
 
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "latitude": 28.6519,
             "longitude": 77.2315,
-            "daily": "weather_code",
             "hourly": [
                 "temperature_2m",
                 "relative_humidity_2m",
@@ -78,11 +77,62 @@ def fetch_current_weather_data():
         response.raise_for_status()  # Raise an exception for bad status codes
         data = response.json()
 
-        logger.info("Current weather data fetched successfully.")
+        logger.info("Hourly weather data fetched successfully.")
 
         return {
             "hourly_data": data.get("hourly", {}),
             "daily_data": data.get("daily", {}),
+            "metadata": {
+                "coordinates": {
+                    "latitude": data.get("latitude"),
+                    "longitude": data.get("longitude"),
+                },
+                "elevation": data.get("elevation"),
+                "timezone": data.get("timezone"),
+                "timezone_abbreviation": data.get("timezone_abbreviation"),
+                "utc_offset_seconds": data.get("utc_offset_seconds"),
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching current weather data: {e}")
+        return {}
+
+
+def fetch_current_weather_data():
+    try:
+        logger.info("Fetching current weather data from Open-Meteo API...")
+
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": 28.6519,
+            "longitude": 77.2315,
+            "current": [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "is_day",
+                "precipitation",
+                "rain",
+                "showers",
+                "weather_code",
+                "cloud_cover",
+                "surface_pressure",
+                "wind_speed_10m",
+                "wind_direction_10m",
+            ],
+            "forecast_days": 1,
+            "timezone": "Asia/Kolkata",
+        }
+
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        data = response.json()
+
+        logger.info("Current weather data fetched successfully.")
+
+        return {
+            "current_data": data.get("current", {}),
+            "current_data_units": data.get("current_units", {}),
             "metadata": {
                 "coordinates": {
                     "latitude": data.get("latitude"),

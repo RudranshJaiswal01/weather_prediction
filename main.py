@@ -4,7 +4,13 @@ import threading
 import time
 import logging
 import uvicorn
-from weather_fetcher import fetch_historic_weather_data, fetch_current_weather_data
+from datetime import datetime, timedelta
+from weather_fetcher import (
+    fetch_historic_weather_data,
+    fetch_hourly_weather_data,
+    fetch_current_weather_data,
+)
+from utils.csv_handler import append_weather_data_to_csv
 
 # Setup logging
 logging.basicConfig(
@@ -20,30 +26,64 @@ fetch_interval = 3600  # 1 hour
 # Shared variable to hold latest data
 latest_weather_data = {}
 
+
 # Function to run in background thread
-# def background_fetch():
-#     global latest_weather_data
-#     while True:
-#         latest_weather_data = fetch_current_weather_data()
-#         time.sleep(fetch_interval)
+def background_fetch():
+    global latest_weather_data
 
-# # Start background thread
-# fetch_thread = threading.Thread(target=background_fetch, daemon=True)
-# fetch_thread.start()
+    logger.info("Starting background weather data fetch service")
+
+    now = datetime.now()
+    next_hour = now.replace(minute=0, second=0, microsecond=0)
+    if now >= next_hour:
+        next_hour = next_hour + timedelta(hours=1)
+    initial_delay = (next_hour - now).total_seconds()
+
+    logger.info(
+        f"Waiting {initial_delay:.2f} seconds until next hour mark ({next_hour.strftime('%H:%M:%S')})"
+    )
+
+    time.sleep(initial_delay)
+
+    logger.info("Starting hourly weather data fetch")
+
+    while True:
+        logger.info("Fetching current weather data")
+        latest_weather_data = fetch_current_weather_data()
+
+        # Append to CSV file
+        if append_weather_data_to_csv(latest_weather_data):
+            logger.info("Weather data updated successfully. Waiting for next hour.")
+        else:
+            logger.warning("Failed to append weather data to CSV. Waiting for next hour.")
+
+        time.sleep(3600)  # Sleep for exactly one hour
 
 
-# API endpoint to get latest weather data
+# Start background thread
+fetch_thread = threading.Thread(target=background_fetch, daemon=True)
+fetch_thread.start()
+
+
+# API endpoint to get current weather data
 @app.get("/weather")
-def get_weather():
+def get_current_weather():
     latest_weather_data = fetch_current_weather_data()
     return JSONResponse(content=latest_weather_data)
+
+
+# API endpoint to get hourly weather data for a given date
+@app.get("/weather/hourly")
+def get_hourly_weather():
+    hourly_data = fetch_hourly_weather_data()
+    return JSONResponse(content=hourly_data)
 
 
 # API endpoint to fetch historic weather data
 @app.get("/weather/historic")
 def get_historic_weather():
-    data = fetch_historic_weather_data()
-    return JSONResponse(content=data)
+    historic_data = fetch_historic_weather_data()
+    return JSONResponse(content=historic_data)
 
 
 # API endpoint to change the fetch interval
