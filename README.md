@@ -288,6 +288,10 @@ The system collects and stores the following parameters:
        return new_df, df
    ```
 
+## Example Visualisaion from Supaboard
+![image](https://github.com/user-attachments/assets/ede447b1-81ee-4462-8d7f-2f0f98b7073a)
+
+
 ## Model Explainability
 
 ### Feature Importance
