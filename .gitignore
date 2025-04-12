@@ -3,11 +3,43 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# env folder
-/henv
-
 # datasets
 /dataset
 
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+ENV/
+/henv
 
 
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Cache files
+.cache*
+*.cache.sqlite
+
+# Local development
+.env
+.env.local
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.csv
